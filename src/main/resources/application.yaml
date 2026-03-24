@@ -1,0 +1,6 @@
+spring:
+    application:
+        name: CHAT_APP
+
+jwt:
+    secret-key: 91eedeb7e798938acd57a0326e341e9709987f4d303f45c83ea7bccabf3c0bbb
