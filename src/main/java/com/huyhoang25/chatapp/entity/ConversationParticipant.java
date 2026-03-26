@@ -16,7 +16,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class ConservationParticipant {
+public class ConversationParticipant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,7 +24,7 @@ public class ConservationParticipant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conservation_id", nullable = false)
-    private Conservation conservation;
+    private Conversation conversation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

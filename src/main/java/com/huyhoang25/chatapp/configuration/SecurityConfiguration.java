@@ -33,7 +33,7 @@ public class SecurityConfiguration {
 
     private static final String [] PUBLIC_ENDPOINT = {
         "/api/v1/auth/**",
-        "/api/v1/user",
+        "/api/v1/users",
     };
 
     private final CustomDetailUserService detailUserService;
@@ -62,6 +62,7 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
  
+    @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(detailUserService);
         provider.setPasswordEncoder(passwordEncoder());

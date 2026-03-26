@@ -33,8 +33,8 @@ public class UserService {
 
         User user = User.builder()
                         .email(request.getEmail())
-                        .username(request.getUserName())
-                        .password(passwordEncoder.encode(request.getPassWord()))
+                        .username(request.getUsername())
+                        .password(passwordEncoder.encode(request.getPassword()))
                         .build();
         
         Role role = roleRepository.findByName(USER_ROLE)

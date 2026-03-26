@@ -14,6 +14,8 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "users")
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Getter
 @Setter

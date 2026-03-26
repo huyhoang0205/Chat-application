@@ -16,11 +16,11 @@ public class MessageMedia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_id", nullable = false)
-    private ChatMessage chatMessage;
+    private ChatMessage message;
 
     @Column(nullable = false)
     private String filename;

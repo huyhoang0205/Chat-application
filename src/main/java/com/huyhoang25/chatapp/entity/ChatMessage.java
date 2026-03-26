@@ -24,8 +24,8 @@ public class ChatMessage {
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conservation_id", nullable = true)
-    private Conservation conservation;
+    @JoinColumn(name = "conversation_id", nullable = true)
+    private Conversation conversation;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
