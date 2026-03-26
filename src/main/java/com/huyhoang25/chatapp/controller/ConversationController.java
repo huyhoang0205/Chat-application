@@ -18,6 +18,8 @@ import com.huyhoang25.chatapp.service.ConversationService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class ConversationController {
         .build();
     }
 
+    @GetMapping("/my-conversation")
     ApiResponse<PageResponse<ConversationDetailResponse>> getMyConversation(
         @AuthenticationPrincipal Jwt jwt,
         @RequestParam(required = false, defaultValue = "1") int page,

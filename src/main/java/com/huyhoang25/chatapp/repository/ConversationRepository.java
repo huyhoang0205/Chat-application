@@ -16,9 +16,9 @@ import com.huyhoang25.chatapp.entity.Conversation;
 public interface ConversationRepository extends JpaRepository<Conversation,String>{
 
     @EntityGraph(attributePaths = {"participants", "participants.user"})
-    Optional<Conversation> findByParticipantHash(String paticipantHash);
+    Optional<Conversation> findByParticipantHash(String participantHash);
 
-    @EntityGraph(attributePaths = {"participants", "paticipants.user"})
-    @Query("SELECT DISTINCT c FROM Conversation c JOIN c.participants p WHERE p.user.id =: userId ORDER BY c.lastMessageTime DESC NULLS LAST")
+    @EntityGraph(attributePaths = {"participants", "participants.user"})
+    @Query("SELECT DISTINCT c FROM Conversation c JOIN c.participants p WHERE p.user.id = :userId ORDER BY c.lastMessageTime DESC NULLS LAST")
     Page<Conversation> findAllByUserId(@Param("userId") String userId, Pageable pageable);
 }
