@@ -8,6 +8,8 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -20,6 +22,7 @@ public class CustomJwtDecoder implements JwtDecoder{
 
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 
+    @PostConstruct
     public void init() {
         if(Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HS512");
@@ -29,6 +32,7 @@ public class CustomJwtDecoder implements JwtDecoder{
         }
     }
 
+    @Override
     public Jwt decode(String token) throws JwtException {
         return nimbusJwtDecoder.decode(token);
     }
