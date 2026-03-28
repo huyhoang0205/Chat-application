@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.huyhoang25.chatapp.common.MessageType;
 
 @Entity
@@ -24,6 +27,10 @@ public class ChatMessage {
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", nullable = false)
+    private User sender;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id", nullable = true)
     private Conversation conversation;
 
@@ -38,8 +45,8 @@ public class ChatMessage {
     @Builder.Default
     private LocalDateTime sentAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "media_files", columnDefinition = "json")
     @Builder.Default
     private List<MessageMedia> mediaFiles = new ArrayList<>();
-
 }
