@@ -1,5 +1,6 @@
 package com.huyhoang25.chatapp.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -18,11 +19,21 @@ public interface ConversationRepository extends JpaRepository<Conversation,Strin
     @EntityGraph(attributePaths = {"participants", "participants.user"})
     Optional<Conversation> findByParticipantHash(String participantHash);
 
-    @EntityGraph(attributePaths = {"participants", "participants.user"})
-    @Query("SELECT DISTINCT c FROM Conversation c JOIN c.participants p WHERE p.user.id = :userId ORDER BY c.lastMessageTime DESC NULLS LAST")
-    Page<Conversation> findAllByUserId(@Param("userId") String userId, Pageable pageable);
+    //@EntityGraph(attributePaths = {"participants", "participants.user"})
+    @Query("SELECT c.id FROM Conversation c " +
+            " JOIN c.participants p " + 
+            " WHERE p.user.id = :userId " + 
+            " GROUP BY c.id " +
+            " ORDER BY c.lastMessageTime DESC NULLS LAST")
+    Page<String> findAllByUserId(@Param("userId") String userId, Pageable pageable);
+
+    @Query("SELECT DISTINCT c FROM Conversation c " +
+        "LEFT JOIN FETCH c.participants p " +
+        "LEFT JOIN FETCH p.user " +
+        "WHERE c.id IN :conversationIds " )
+    List<Conversation> findByIdInWithParticipants(@Param("conversationIds") List<String> conversationIds);
 
 
     @Query("SELECT c FROM Conversation c  JOIN c.participants p WHERE c.id = :conversationId AND p.user.id = :userId")
-    Optional<Conversation> findByIdAndMember(String conversationId, String userId);
+    Optional<Conversation> findByIdAndMember(@Param("conversationId") String conversationId,@Param("userId") String userId);
 }

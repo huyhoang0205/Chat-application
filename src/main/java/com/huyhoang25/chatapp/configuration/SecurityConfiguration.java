@@ -34,6 +34,7 @@ public class SecurityConfiguration {
     private static final String [] PUBLIC_ENDPOINT = {
         "/api/v1/auth/**",
         "/api/v1/users",
+        "/ws/**", // Allow WebSocket endpoint
     };
 
     private final CustomDetailUserService detailUserService;

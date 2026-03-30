@@ -105,14 +105,22 @@ public class ConversationService {
         // page - 1 vì Spring Data JPA dùng 0-based index, nhưng API dùng 1-based
         Pageable pageable = PageRequest.of(page -1, size);
 
-        // Query conversations từ database với pagination
-        Page<Conversation> conversationPage = conversationRepository.findAllByUserId(userId,pageable);
+        // Query conversationIdss từ database với pagination
+        Page<String> conversationIdsPage = conversationRepository.findAllByUserId(userId,pageable);
 
         // Lấy danh sách conversations từ Page object
-        List<Conversation> conversations = conversationPage.getContent();
+        // -> Lấy danh sách conversationIds từ Page object
+        List<String> conversationIds = conversationIdsPage.getContent();
+
+
+        // Step 3: Fetch collections cho conversations đã được paginate
+        // Empty check để tránh query với empty list
+
+        List<Conversation> conversationWithPaticipants = conversationIds.isEmpty()? 
+            List.of() : conversationRepository.findByIdInWithParticipants(conversationIds);
 
         // Map từng conversation entity sang response DTO
-        List<ConversationDetailResponse> responses = conversations.stream()
+        List<ConversationDetailResponse> responses = conversationWithPaticipants.stream()
         .map(conversation -> ConversationMapper.tConversationDetailResponse(userId, conversation))
         .toList();
 
@@ -120,8 +128,8 @@ public class ConversationService {
         return PageResponse.<ConversationDetailResponse>builder()
         .currentPage(page) // Trả về page number gốc (1-based)
         .pageSize(pageable.getPageSize())
-        .totalPage(conversationPage.getTotalPages())
-        .totalElement(conversationPage.getTotalElements())
+        .totalPage(conversationIdsPage.getTotalPages())
+        .totalElement(conversationIdsPage.getTotalElements())
         .content(responses)
         .build();
     }
