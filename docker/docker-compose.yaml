@@ -11,5 +11,12 @@ services:
     environment: 
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: chat_app
+  redis-server:
+    image: redis:8.0
+    container_name: redis-server-chatapp
+    hostname: redis-server
+    ports:
+      - "6379:6379"
+      
 volumes:
   mysql-data:

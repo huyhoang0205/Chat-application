@@ -31,6 +31,7 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
+    private final ConversationMapper conversationMapper;
 
     public CreateConversationResponse createConversation(String creatorId, CreateConversationRequest request) {
         List<String> participantsIds = request.participantIds();
@@ -66,7 +67,7 @@ public class ConversationService {
             Optional<Conversation> existing = conversationRepository.findByParticipantHash(participantHash);
             if(existing.isPresent()) {
                 // Nếu đã tồn tại, trả về conversation cũ
-                return ConversationMapper.toConversationResponse(creatorId, existing.get());
+                return conversationMapper.toConversationResponse(creatorId, existing.get());
             }
         }
         // Xử lý logic cho GROUP conversation
@@ -97,7 +98,7 @@ public class ConversationService {
         conversationRepository.save(conversation);
 
         // Map entity sang response DTO
-        return ConversationMapper.toConversationResponse(creatorId, conversation);
+        return conversationMapper.toConversationResponse(creatorId, conversation);
     }
 
     public PageResponse<ConversationDetailResponse> getMyConversation(String userId, int page, int size) {
@@ -121,7 +122,7 @@ public class ConversationService {
 
         // Map từng conversation entity sang response DTO
         List<ConversationDetailResponse> responses = conversationWithPaticipants.stream()
-        .map(conversation -> ConversationMapper.tConversationDetailResponse(userId, conversation))
+        .map(conversation -> conversationMapper.tConversationDetailResponse(userId, conversation))
         .toList();
 
         // Build PageResponse với thông tin pagination

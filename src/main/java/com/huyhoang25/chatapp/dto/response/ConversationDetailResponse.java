@@ -30,4 +30,7 @@ public class ConversationDetailResponse {
     private LocalDateTime lastMessageTime;
 
     private LocalDateTime createdAt;
+
+    private Boolean isOnline; 
+    private String lastOnlineAt;
 }

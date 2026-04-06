@@ -1,17 +1,27 @@
 package com.huyhoang25.chatapp.mapper;
 
 
+import java.time.Duration;
+import java.time.Instant;
+
+import org.springframework.stereotype.Component;
+
 import com.huyhoang25.chatapp.common.ConversationType;
 import com.huyhoang25.chatapp.dto.response.ConversationDetailResponse;
 import com.huyhoang25.chatapp.dto.response.CreateConversationResponse;
 import com.huyhoang25.chatapp.dto.response.ParticipantResponse;
 import com.huyhoang25.chatapp.entity.Conversation;
+import com.huyhoang25.chatapp.service.UserSessionService;
 
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
 public final class ConversationMapper {
-    private ConversationMapper() {
 
-    }
-    public static CreateConversationResponse toConversationResponse(String creatorId, Conversation conversation) {
+    private final UserSessionService userSessionService;
+    
+    public CreateConversationResponse toConversationResponse(String creatorId, Conversation conversation) {
         ConversationType conversationType = conversation.getConversationType();
 
         CreateConversationResponse response = CreateConversationResponse.builder()
@@ -44,7 +54,7 @@ public final class ConversationMapper {
 
     }
 
-    public static ConversationDetailResponse tConversationDetailResponse(String creatorId, Conversation conversation) {
+    public ConversationDetailResponse tConversationDetailResponse(String creatorId, Conversation conversation) {
         ConversationType conversationType = conversation.getConversationType();
 
         ConversationDetailResponse response = ConversationDetailResponse.builder()
@@ -52,7 +62,7 @@ public final class ConversationMapper {
         .conversationType(conversationType)
         .participantInfo(conversation.getParticipants().stream()
                                         .map(participant -> ParticipantResponse.builder()
-                                                                    .userId(participant.getId())
+                                                                    .userId(participant.getUser().getId())
                                                                     .username(participant.getUser().getUsername())
                                                                     .build())
                                         .toList())   
@@ -70,10 +80,49 @@ public final class ConversationMapper {
         if( conversation.getConversationType() != ConversationType.PRIVATE) {
             response.setConversationAvatar(conversation.getConversationAvatar());
         }
+
+        if(conversationType == ConversationType.PRIVATE) {
+            // Private conversation: Check other user's online status
+            conversation.getParticipants().stream()
+                    .filter(p -> !p.getUser().getId().equals(creatorId))
+                    .findFirst()
+                    .ifPresent(p -> {
+                        String otherUserId = p.getUser().getId();
+                        boolean isOnline = userSessionService.isOnline(p.getUser().getId());
+                        String lastOnlineAt = userSessionService.getPresence(otherUserId)
+                                    .map(presence -> formatLastOnlineAt(presence.getLastOnlineAt()))
+                                    .orElse(null);
+                        response.setIsOnline(isOnline);
+                        response.setLastOnlineAt(lastOnlineAt);
+                    });
+        } else {
+            // Group conversation: Check if any member is online
+            boolean anyOnline = conversation.getParticipants().stream()
+            .filter(p -> !p.getUser().getId().equals(creatorId))
+            .anyMatch(p -> userSessionService.isOnline(p.getUser().getId()));
+
+            response.setIsOnline(anyOnline);
+        }
+
+        if(conversationType != ConversationType.PRIVATE) {
+            response.setConversationAvatar(conversation.getConversationAvatar());
+        }
+
         return response;
     }
 
-    private static String resolveConversationName(String creatorId, Conversation conversation) {
+    public String formatLastOnlineAt(Instant lastOnlineAt) {
+        if(lastOnlineAt == null) return null;
+
+        long minutes = Duration.between(lastOnlineAt, Instant.now()).toMinutes();
+
+        if(minutes < 1) return "Vừa hoạt động xong";
+        if (minutes < 60)   return "Hoạt động " + minutes + " phút trước";
+        if (minutes < 1440) return "Hoạt động " + (minutes / 60) + " giờ trước";
+        return "Hoạt động " + (minutes / 1440) + " ngày trước";
+    }
+
+    private String resolveConversationName(String creatorId, Conversation conversation) {
         if(conversation.getConversationType() == ConversationType.PRIVATE) {
             return conversation.getParticipants().stream()
             .filter(p -> !p.getUser().getId().equals(creatorId)) // Lọc người còn lại

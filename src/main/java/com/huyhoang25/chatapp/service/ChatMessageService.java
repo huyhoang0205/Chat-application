@@ -24,6 +24,7 @@ import com.huyhoang25.chatapp.exception.ErrorCode;
 import com.huyhoang25.chatapp.repository.ChatMessageRepository;
 import com.huyhoang25.chatapp.repository.ConversationRepository;
 import com.huyhoang25.chatapp.repository.UserRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class ChatMessageService {
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional(rollbackFor = Exception.class)
     public ChatMessageResponse sendChatMessage(String senderId, ChatMessageRequest request) {
@@ -73,8 +75,13 @@ public class ChatMessageService {
         conversation.setLastMessageContent(message.getContent());
         conversation.setLastMessageTime(message.getSentAt());
         conversationRepository.save(conversation);
-        // 7. Map entity sang response DTO
-        return ChatMessageResponse.builder()
+        // ========== BƯỚC 1: Lấy danh sách recipients (không bao gồm sender) ==========
+        List<String> recipientIds = conversation.getParticipants().stream()
+                    .filter(participant -> !participant.getUser().getId().equals(senderId))
+                    .map(participant -> participant.getUser().getId())
+                    .toList();
+        // 7. Map entity sang response DTO -> // ========== BƯỚC 2: Build response ==========
+        ChatMessageResponse response = ChatMessageResponse.builder()
         .id(message.getId())
         .tempId(request.tempId())
         .conversationId(message.getConversation().getId())
@@ -91,8 +98,13 @@ public class ChatMessageService {
                                                             .uploadedAt(messageMedia.getUploadedAt())
                                                             .build())
                                                         .toList())
-        .createdAt(message.getSentAt())
         .build();
+
+        // ========== BƯỚC 3: Broadcast qua WebSocket cho recipients ==========
+        recipientIds.forEach(recipientId -> {
+            simpMessagingTemplate.convertAndSendToUser(recipientId, "/queue/messages", response);
+        });
+        return response;
     }
 
 

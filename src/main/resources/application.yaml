@@ -13,6 +13,10 @@ spring:
             hibernate:
                 type:
                     json_format_mapper: com.huyhoang25.chatapp.configuration.CustomHibernateJsonFormatter
+    data:
+        redis:
+            host: localhost
+            port: 6379
 jwt:
     secret-key: 91eedeb7e798938acd57a0326e341e9709987f4d303f45c83ea7bccabf3c0bbb
 logging:
@@ -20,3 +24,5 @@ logging:
         org:
             springframework:
                 security: DEBUG
+            web:
+                socket: DEBUG
