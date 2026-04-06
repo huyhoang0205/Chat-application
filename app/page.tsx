@@ -1,65 +1,264 @@
-import Image from "next/image";
+'use client'
+import {Box, Typography, IconButton, Divider} from '@mui/material'
+import {Add, Menu as MenuIcon} from '@mui/icons-material'
+import Logo from '@/component/common/Logo'
 
-export default function Home() {
+
+import UserProfile from '@/component/common/UserProfile'
+import NewConversationDialog from '@/component/chat/NewConversationDiaLog'
+import MessageList from '@/component/chat/MessageList'
+import MessageInput from '@/component/chat/MessageInput'
+import { useEffect, useState } from 'react'
+import ConversationList from '@/component/chat/ConversationList'
+import ChatPlaceholder from '@/component/chat/ChatPlaceholder'
+import {useAuthGuard} from '@/hook/useAuthGuard'
+import { ChatMessageResponse, ConversationDetailResponse, ConversationType, MessageType, StatusResponse } from '@/type'
+import { conversationService } from '@/service/conversation.service'
+import { messageService } from '@/service/message.service'
+import { useWebSocket } from '@/hook/useWebSocket'
+import { API_ENDPOINTS } from '@/api/apiEnpoints'
+import {useConnectWebSocket} from '@/hook/useConnectWebSocket'
+
+export default function HomePage() {
+
+  const {isAuthenticated} = useAuthGuard();
+
+  const [conversation, setConversations] = useState<ConversationDetailResponse[]>([])
+  const [message, setMessages] = useState<ChatMessageResponse[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<string |null>(null)
+  const [loadingConversations, setLoadingConversations] = useState(false)
+  const [loadingMessage, setLoadingMessages] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showNewConversation , setShowNewConversation] = useState(false)
+  const [updateStatus, setUpdateStatus] = useState<boolean | null>(null);
+
+
+  const {connected} = useConnectWebSocket()
+
+  useWebSocket(API_ENDPOINTS.WEBSOCKET.MESSAGE, (message: ChatMessageResponse ) => {
+    console.log("message:::",message)
+    if(selectedConversation && message.conversationId === selectedConversation) {
+      setMessages((prev) => [...prev,message])
+    } 
+    const conversationId = message.conversationId;
+    // const index = conversation.findIndex(item => item.id === conversationId)
+    // const newConversation = [...conversation]
+    // const [item ] = newConversation.splice(index, 1)
+    // newConversation.unshift(item);
+    // setConversations(newConversation)
+    pushConvToTop(conversationId)
+  })
+
+  useWebSocket(API_ENDPOINTS.WEBSOCKET.STATUS, (message: StatusResponse) => {
+      console.log("/topic/status --- message:::: ",message)
+      const isUpdateStatus = conversation.flatMap(item => item.participantInfo).flatMap(participant => participant.userId)
+      .includes(message.userId);
+      if(isUpdateStatus) {
+          setUpdateStatus(true);
+      }
+  })
+
+
+  useEffect(() => {
+    if(isAuthenticated) {
+      loadConversations()
+
+    }
+  }, [isAuthenticated, updateStatus])
+
+  useEffect(() => {
+    if(selectedConversation) {
+      loadMessages(selectedConversation);
+    }
+  }, [selectedConversation])
+
+  const loadConversations = async () => {
+    try {
+      setLoadingConversations(true)
+      const response = await conversationService.getMyConversations(1,50)
+      setConversations(response.data.content);
+    }catch (error) {
+      console.error('Failed to load conversation :::',error)
+    }finally {
+      setLoadingConversations(false)
+      setUpdateStatus(false)
+    }
+  }
+  const loadMessages = async (conversationId : string) => {
+    try{
+        setLoadingMessages(true);
+        const response = await messageService.getMessages(conversationId, 1, 20);
+        setMessages(response.data.content.reverse());
+    } catch(error) {
+    console.error('Failed to load message:::', error)
+    } finally {
+      setLoadingMessages(false);
+    }
+  } 
+
+  const handleSendMessage = async (content: string) => {
+    if(!selectedConversation) return;
+    const tempId = `temp-${crypto.randomUUID}`
+
+    try {
+      setSendingMessage(true)
+
+      const response = await messageService.sendMessage({
+        conversationId: selectedConversation,
+        content,
+        messageType: MessageType.TEXT,
+        tempId,
+      })
+
+      setMessages((prev) => [...prev, response.data])
+      pushConvToTop(selectedConversation)
+
+    } catch(error) {
+      console.error('Failed to send message:::', error)
+    } finally {
+      setSendingMessage(false)
+    }
+  }
+
+  const handleCOnversationCreated = (conversationId: string) => {
+    loadConversations();
+    setSelectedConversation(conversationId)
+  }
+
+  const pushConvToTop = (conversationId: string) => {
+      const index = conversation.findIndex(item => item.id === conversationId)
+      const newConversation = [...conversation]
+      const [item ] = newConversation.splice(index, 1)
+      newConversation.unshift(item);
+      setConversations(newConversation)
+  }
+
+  const selectedConv = conversation.find(c => c.id === selectedConversation);
+
+  if(!isAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <Box sx={{display: 'flex', height: '100vh', backgroundColor: '#363933f', overflow:'hidden'}}>
+      <Box
+        sx={{
+          width: showSidebar ? 280 : 0,
+          backgroundColor: "2f3136",
+          borderRight: '1px solid #202225',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.3s',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{
+          height: 48,
+          px: 2,
+          borderBottom: "1px solid #202225",
+          display: 'flex',
+          alignItems:'center',
+          gap: 1.5
+        }}>
+            <Logo size='small' showText= {false} />
+            <Typography sx={{color: '#fff', fontWeight: 600, fontSize:'0.9375rem', flex:1}}>
+              Tin nhắn
+            </Typography>
+            <IconButton 
+              size='small'
+              onClick={() => setShowNewConversation(true)}
+              sx={{color: '#b9bbbe', '&:hover': {color: '#fff'}}} 
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+              <Add fontSize='small'/>
+            </IconButton>
+        </Box>
+
+        <Box sx={{flex:1 , overflowY: 'auto'}}>
+          <ConversationList
+            conversations={conversation}
+            selectedId={selectedConversation}
+            onSelect={setSelectedConversation}
+            loading={loadingConversations}
+          />
+        </Box>
+
+
+        <Box sx={{borderTop: '1px solid #202225'}}>
+          <UserProfile />
+        </Box>
+      </Box>
+      {/* main chat */}
+      <Box sx={{flex:1, display: 'flex', flexDirection : 'column', overflowY: 'auto' }}>
+        {/* chat header */}
+        <Box 
+        sx={{
+          display: 'flex',
+          gap:2,
+          height: 48,
+          px:2,
+          alignItems: 'center',
+          borderBottom: '1px solid #202225',
+          backgroundColor: '#36393f'
+        }}>
+          <IconButton
+            onClick={() => setShowSidebar(!showSidebar)} 
+            sx={{color: '#b9bbbe',}}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <MenuIcon fontSize='small'/>
+          </IconButton>
+
+          {selectedConv &&
+          (
+          <>
+            <Typography sx={{color: '#fff', fontWeight: 600,fontSize:'0.9375rem'}}>
+              {selectedConv.name || selectedConv.participantInfo?.map(p => p.username).join(', ')}
+            </Typography>
+            <Divider orientation='vertical' flexItem sx={{borderColor:'#202225'}} />
+            <Typography sx={{color:'#b9bbbe', fontSize: '0.8125rem'}}>
+              {selectedConv.participantInfo?.length} thành viên
+            </Typography>
+            <Divider orientation='vertical' flexItem sx={{mx:1}}/>
+            <Box sx={{display: 'flex', alignItems:'center', gap: 0.75}}>
+              <Box sx={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: '#23a55a',
+                border: '2px solid #36393f',
+                boxSizing: 'border-box'
+              }}/>
+              <Typography sx={{color: selectedConv.isOnline ? '#23a55a' : '#b9bbbe', fontWeight: 500, fontSize: '0.875rem'}}>
+                {selectedConv.isOnline ? 'Đang hoạt động' : selectedConv.lastOnlineAt || 'Không hoạt động'}
+              </Typography>
+            </Box>
+          </>
+          )
+          }
+        </Box>
+
+        {/* message */}
+        {selectedConversation ? (
+          <>
+            <MessageList messages = {message} loading={loadingMessage}/>
+            <MessageInput 
+              onSend={handleSendMessage}
+              disabled = {sendingMessage}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          </>
+        ) : (
+          <>
+            <ChatPlaceholder varian='no-conversation'/>
+          </>
+        )
+      }
+      </Box>
+        {/* New Conversation */}
+        <NewConversationDialog 
+          open = {showNewConversation}
+          onClose ={() => setShowNewConversation(false)}
+          onConversationCreated={handleCOnversationCreated}
+        />
+    </Box>
   );
 }
