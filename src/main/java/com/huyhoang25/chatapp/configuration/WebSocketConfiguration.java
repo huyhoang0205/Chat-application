@@ -17,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${app.frontend_url:http://localhost:3000}")
+    private String frontendUrl;
+
     private final ClientInboundAuthentication clientInboundAuthentication;
     private final WebsocketHandShake websocketHandShake;
 
@@ -26,7 +29,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         // Configure STOMP endpoint: ws://localhost:8080/ws
         // Allow frontend origin và add handshake interceptor
         registry.addEndpoint("/ws")
-        .setAllowedOrigins("http://127.0.0.1:3000", "http://localhost:3000" )
+        .setAllowedOrigins(frontendUrl)
         .addInterceptors(websocketHandShake);
     }
 

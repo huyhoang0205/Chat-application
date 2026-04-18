@@ -3,9 +3,9 @@ spring:
         name: CHAT_APP
     datasource:
         driver-class-name:  com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/chat_app
-        username: root
-        password: 123456
+        url: ${MYSQL_URL:jdbc:mysql://localhost:3306/chat_app}
+        username: ${MYSQL_USER:root}
+        password: ${MYSQL_PASSWORD:123456}
     jpa:
         hibernate:
             ddl-auto: update
@@ -15,8 +15,8 @@ spring:
                     json_format_mapper: com.huyhoang25.chatapp.configuration.CustomHibernateJsonFormatter
     data:
         redis:
-            host: localhost
-            port: 6379
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
 jwt:
     secret-key: 91eedeb7e798938acd57a0326e341e9709987f4d303f45c83ea7bccabf3c0bbb
 logging:
@@ -26,3 +26,5 @@ logging:
                 security: DEBUG
             web:
                 socket: DEBUG
+app:
+    frontend_url: ${FRONTEND_URL:http://localhost:3000}

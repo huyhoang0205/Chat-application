@@ -40,6 +40,8 @@ public class SecurityConfiguration {
     private final CustomDetailUserService detailUserService;
     private final CustomJwtDecoder jwtDecoder;
 
+    @Value("${app.frontend_url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Bean
     public  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -84,7 +86,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("http://127.0.0.1:3000","http://localhost:3000"));
+        corsConfiguration.setAllowedOrigins(frontendUrl);
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.setAllowCredentials(true);
