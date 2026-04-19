@@ -82,7 +82,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             border: '4px solid #404249',
             borderTop: '4px solid #5865f2',
             borderRadius: '50%',
-            // animation: 'spin 1s linear infinite',
             animation: `${spin} 1s linear infinite`,
           }}
         />

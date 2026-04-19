@@ -15,14 +15,13 @@ class WebSocketService {
 
         this.connectionInProgress = true;
     
-        // if (this.client) {
-        //    await this.client.deactivate();
-        // }
-
         console.log('[WebSocket] Khởi tạo kết nối mới...');
 
         this.client = new Client({
             brokerURL: 'ws://localhost:8080/ws',
+            // typeof window !== 'undefined' 
+            // ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws` 
+            // : 'ws://localhost:8080/ws',
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
@@ -41,7 +40,7 @@ class WebSocketService {
                     console.log(`[WS] Đang thực hiện subscribe bù cho: ${item.destination}`);
                     this.client?.subscribe(item.destination, (frame) => item.callback(JSON.parse(frame.body)));
                 });
-                this.subscribeQueue = []; // Reset hàng đợi
+                this.subscribeQueue = []; 
             },
             onStompError: (error) => {
                 console.error('[WebSocket] STOMP error:::', error)

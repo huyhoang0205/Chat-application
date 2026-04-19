@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   compiler: {
     // styledComponents: true,
     // emotion: true
-  }
+  },
+  output: 'standalone'
 };
 
 export default nextConfig;

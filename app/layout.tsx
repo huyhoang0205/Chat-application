@@ -27,10 +27,9 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-      <AppRouterCacheProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col`}>
+      <AppRouterCacheProvider options={{enableCssLayer: true, key: 'css'}}>
         <AuthProvider>        
             {children}
         </AuthProvider>

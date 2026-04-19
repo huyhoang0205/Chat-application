@@ -50,6 +50,7 @@ export default function RegisterForm() {
     return (
         <Box component={'form'} 
             sx={{width: '100%'}}
+            onSubmit={handleSubmit}
         >
             <Typography
                 variant='h4'
