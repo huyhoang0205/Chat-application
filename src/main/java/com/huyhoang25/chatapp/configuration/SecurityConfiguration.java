@@ -2,6 +2,8 @@ package com.huyhoang25.chatapp.configuration;
 
 import java.util.List;
 
+// import org.jspecify.annotations.Nullable;
+// import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,8 +42,8 @@ public class SecurityConfiguration {
     private final CustomDetailUserService detailUserService;
     private final CustomJwtDecoder jwtDecoder;
 
-    @Value("${app.frontend_url:http://localhost:3000}")
-    private String frontendUrl;
+    // @Value("${app.frontend_url:http://localhost:3000}")
+    // private @Nullable String frontendUrl;
 
     @Bean
     public  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -86,7 +88,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(frontendUrl);
+        corsConfiguration.setAllowedOriginPatterns(List.of("*"));
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.setAllowCredentials(true);
