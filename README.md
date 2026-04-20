@@ -1,6 +1,10 @@
 # 🚀 Real-Time Chat Application
 Một ứng dụng nhắn tin thời gian thực hiệu suất cao được xây dựng trên hệ sinh thái Java Spring Boot, tận dụng sức mạnh của WebSocket và bộ nhớ đệm Redis để đảm bảo trải nghiệm mượt mà.
 
+# 🎬 Demo
+
+https://github.com/user-attachments/assets/7c1dbd18-1593-47af-a0de-814c0999f810
+
 # ✨ Tính năng chính
 - 💬 **Chat Real-time**: Gửi và nhận tin nhắn ngay lập tức.
 - 👥 **Group Chat**: Tạo phòng chat nhóm không giới hạn thành viên.
