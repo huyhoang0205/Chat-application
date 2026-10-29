@@ -1,11 +1,16 @@
 spring:
+    config:
+        import: optional:file:.env[.properties] 
     application:
         name: CHAT_APP
     datasource:
-        driver-class-name:  com.mysql.cj.jdbc.Driver
-        url: ${MYSQL_URL:jdbc:mysql://localhost:3306/chat_app}
-        username: ${MYSQL_USER:root}
-        password: ${MYSQL_PASSWORD:123456}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/chat_app?sslMode=REQUIRE&useSSL=true&serverTimezone=UTC
+        # ${DB_URL}
+        username: 3Ry5s4a6ehGTSM6.root
+        # ${DB_USERNAME}
+        password: 1N6xRpzHzBMhK8yI
+        # ${DB_PASSWORD}
     jpa:
         hibernate:
             ddl-auto: update
