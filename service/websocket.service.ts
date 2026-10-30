@@ -7,7 +7,7 @@ class WebSocketService {
 
   connect(token: string, onConnected?: () => void) {
     this.client = new Client({
-      brokerURL: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080/ws",
+      brokerURL: process.env.NEXT_PUBLIC_WS_URL,
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
