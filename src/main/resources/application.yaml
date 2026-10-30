@@ -1,16 +1,13 @@
 spring:
     config:
-        import: optional:file:.env[.properties] 
+        import: optional:file:.env
     application:
         name: CHAT_APP
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/chat_app?sslMode=REQUIRE&useSSL=true&serverTimezone=UTC
-        # ${DB_URL}
-        username: 3Ry5s4a6ehGTSM6.root
-        # ${DB_USERNAME}
-        password: 1N6xRpzHzBMhK8yI
-        # ${DB_PASSWORD}
+        url: ${DB_URL}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
     jpa:
         hibernate:
             ddl-auto: update
@@ -20,16 +17,19 @@ spring:
                     json_format_mapper: com.huyhoang25.chatapp.configuration.CustomHibernateJsonFormatter
     data:
         redis:
-            host: ${REDIS_HOST:localhost}
-            port: ${REDIS_PORT:6379}
+            host: ${REDIS_HOST}
+            port: ${REDIS_PORT}
+            password: ${REDIS_PASSWORD}
+            ssl:
+                enabled: true
 jwt:
     secret-key: 91eedeb7e798938acd57a0326e341e9709987f4d303f45c83ea7bccabf3c0bbb
 logging:
     level:
         org:
             springframework:
-                security: DEBUG
+                security: INFO
             web:
-                socket: DEBUG
+                socket: INFO
 app:
     frontend_url: ${FRONTEND_URL:http://localhost:3000}

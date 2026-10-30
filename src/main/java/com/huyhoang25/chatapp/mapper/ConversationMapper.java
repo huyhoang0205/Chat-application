@@ -1,9 +1,6 @@
 package com.huyhoang25.chatapp.mapper;
 
 
-import java.time.Duration;
-import java.time.Instant;
-
 import org.springframework.stereotype.Component;
 
 import com.huyhoang25.chatapp.common.ConversationType;
@@ -12,6 +9,7 @@ import com.huyhoang25.chatapp.dto.response.CreateConversationResponse;
 import com.huyhoang25.chatapp.dto.response.ParticipantResponse;
 import com.huyhoang25.chatapp.entity.Conversation;
 import com.huyhoang25.chatapp.service.UserSessionService;
+import com.huyhoang25.chatapp.util.DateTimeUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,21 +35,13 @@ public final class ConversationMapper {
         .createdAt(conversation.getCreatedAt())
         .build();
 
-        if(conversationType == ConversationType.PRIVATE) {
-            // Với PRIVATE: tên là username của người còn lại (không phải creator)
-            conversation.getParticipants()
-                .stream()
-                .filter(participant -> !participant.getUser().getId().equals(creatorId))
-                .findFirst()
-                .ifPresent(participantInfo -> response.setName(participantInfo.getUser().getUsername()));
-        } else {
-            // Với GROUP: dùng tên nhóm và avatar từ conversation
-            response.setName(conversation.getName());
+        response.setName(resolveConversationName(creatorId, conversation));
+
+        if (conversationType != ConversationType.PRIVATE) {
             response.setConversationAvatar(conversation.getConversationAvatar());
         }
 
         return response;
-
     }
 
     public ConversationDetailResponse tConversationDetailResponse(String creatorId, Conversation conversation) {
@@ -74,12 +64,7 @@ public final class ConversationMapper {
         .build();   
         
         // Resolve tên conversation
-        String name = resolveConversationName(creatorId, conversation);
-        response.setName(name);
-
-        if( conversation.getConversationType() != ConversationType.PRIVATE) {
-            response.setConversationAvatar(conversation.getConversationAvatar());
-        }
+        response.setName(resolveConversationName(creatorId, conversation));
 
         if(conversationType == ConversationType.PRIVATE) {
             // Private conversation: Check other user's online status
@@ -90,8 +75,9 @@ public final class ConversationMapper {
                         String otherUserId = p.getUser().getId();
                         boolean isOnline = userSessionService.isOnline(p.getUser().getId());
                         String lastOnlineAt = userSessionService.getPresence(otherUserId)
-                                    .map(presence -> formatLastOnlineAt(presence.getLastOnlineAt()))
+                                    .map(presence -> DateTimeUtils.formatLastOnlineAt(presence.getLastOnlineAt()))
                                     .orElse(null);
+
                         response.setIsOnline(isOnline);
                         response.setLastOnlineAt(lastOnlineAt);
                     });
@@ -109,17 +95,6 @@ public final class ConversationMapper {
         }
 
         return response;
-    }
-
-    public String formatLastOnlineAt(Instant lastOnlineAt) {
-        if(lastOnlineAt == null) return null;
-
-        long minutes = Duration.between(lastOnlineAt, Instant.now()).toMinutes();
-
-        if(minutes < 1) return "Vừa hoạt động xong";
-        if (minutes < 60)   return "Hoạt động " + minutes + " phút trước";
-        if (minutes < 1440) return "Hoạt động " + (minutes / 60) + " giờ trước";
-        return "Hoạt động " + (minutes / 1440) + " ngày trước";
     }
 
     private String resolveConversationName(String creatorId, Conversation conversation) {
