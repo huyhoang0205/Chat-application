@@ -24,7 +24,7 @@ RUN addgroup --system spring && adduser --system spring --ingroup spring
 USER spring:spring
 
 # Sao chép file JAR đã build từ giai đoạn 1 sang giai đoạn chạy
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Khai báo cổng mà ứng dụng lắng nghe
 EXPOSE 8080
