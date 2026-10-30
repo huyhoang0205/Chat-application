@@ -2,6 +2,7 @@ package com.huyhoang25.chatapp.configuration;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 // import org.jspecify.annotations.Nullable;
 // import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,40 +34,39 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    private static final String [] PUBLIC_ENDPOINT = {
-        "/api/v1/auth/**",
-        "/api/v1/users",
-        "/ws/**", // Allow WebSocket endpoint
+    private static final String[] PUBLIC_ENDPOINT = {
+            "/api/v1/auth/**",
+            "/api/v1/users",
+            "/ws/**", // Allow WebSocket endpoint
     };
 
     private final CustomDetailUserService detailUserService;
     private final CustomJwtDecoder jwtDecoder;
 
-    // @Value("${app.frontend_url:http://localhost:3000}")
-    // private @Nullable String frontendUrl;
+    @Value("${app.frontend_origin}")
+    private String frontendOrigin;
 
     @Bean
-    public  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers(PUBLIC_ENDPOINT).permitAll()
-            .anyRequest().authenticated()
-        )
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfiger -> jwtConfiger.decoder(jwtDecoder)
-                                                                    .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                                                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-                                                .accessDeniedHandler(new JwtAccessDeniedHandler()))
-        .sessionManagement(session ->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));        
-        
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(PUBLIC_ENDPOINT).permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfiger -> jwtConfiger.decoder(jwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                        .accessDeniedHandler(new JwtAccessDeniedHandler()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         return http.build();
-    }   
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
- 
+
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(detailUserService);
@@ -88,7 +88,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOriginPatterns(List.of("*"));
+        corsConfiguration.setAllowedOriginPatterns(List.of(frontendOrigin, "http://localhost:3000"));
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.setAllowCredentials(true);

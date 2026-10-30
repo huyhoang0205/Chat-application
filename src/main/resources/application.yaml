@@ -32,4 +32,4 @@ logging:
             web:
                 socket: INFO
 app:
-    frontend_url: ${FRONTEND_URL:http://localhost:3000}
+    frontend_origin: ${FRONTEND_ORIGIN}

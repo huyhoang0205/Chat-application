@@ -1,5 +1,6 @@
 package com.huyhoang25.chatapp.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 // import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
-    // @Value("${app.frontend_url:http://localhost:3000}")
-    // private String frontendUrl;
+    @Value("${app.frontend_origin}")
+    private String frontendOrigin;
 
     private final ClientInboundAuthentication clientInboundAuthentication;
     private final WebsocketHandShake websocketHandShake;
@@ -30,7 +31,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         // Configure STOMP endpoint: ws://localhost:8080/ws
         // Allow frontend origin và add handshake interceptor
         registry.addEndpoint("/ws")
-        .setAllowedOriginPatterns("*")
+        .setAllowedOrigins(frontendOrigin)
         .addInterceptors(websocketHandShake);
     }
 
