@@ -7,9 +7,6 @@ COPY .mvn .mvn
 COPY mvnw .
 RUN chmod +x mvnw
 
-# Tải trước các phụ thuộc (Dependencies)
-RUN ./mvnw dependency:go-offline -B
-
 # Sao chép toàn bộ mã nguồn còn lại
 COPY src ./src
 
