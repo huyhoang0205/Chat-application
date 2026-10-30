@@ -23,7 +23,7 @@ export default function UserProfile() {
   const handleLogout = () => {
     handleClose();
     logout();
-    websocketService.disconnected();
+    websocketService.disconnect();
   };
 
   if (!user) return null;

@@ -1,18 +1,29 @@
 'use client';
 
 import { Box, Avatar, Typography, CircularProgress } from '@mui/material';
-import { ChatMessageResponse } from '@/type';
 import { format, isToday, isYesterday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useUserStore } from '@/store/useUserStore';
+import { useChatStore } from '@/store/useChatStore';
+import { ChatMessageResponse } from '@/type';
 
-interface MessageListProps {
-  messages: ChatMessageResponse[];
-  loading?: boolean;
-}
-
-export default function MessageList({ messages, loading = false }: MessageListProps) {
+export default function MessageList() {
+  const EMPTY_ARRAY: ChatMessageResponse[] = [];
+  const loading = useChatStore(state => state.isLoadingMessages)
+  const selectedConvId = useChatStore(state => state.activeConversationId)
+  const messages =  useChatStore(state => {
+    if (!selectedConvId) return EMPTY_ARRAY;
+    return state.messagesByConversation[selectedConvId] ?? EMPTY_ARRAY;
+  })
   const { user } = useUserStore();
+
+  if (loading) {
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <CircularProgress sx={{ color: '#5865f2' }} />
+          </Box>
+        );
+    }
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -23,14 +34,6 @@ export default function MessageList({ messages, loading = false }: MessageListPr
     }
     return format(date, 'dd/MM HH:mm', { locale: vi });
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress sx={{ color: '#5865f2' }} />
-      </Box>
-    );
-  }
 
   if (messages.length === 0) {
     return (

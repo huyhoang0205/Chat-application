@@ -1,5 +1,7 @@
 'use client'
 
+import { useMounted } from '@/hook/useMounted';
+import { useChatStore } from '@/store/useChatStore';
 import { ConversationDetailResponse } from '@/type'
 import {
     Avatar,
@@ -13,27 +15,14 @@ import {
 } from '@mui/material'
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { useEffect, useState } from 'react';
 
-interface ConversationListProps {
-    conversations: ConversationDetailResponse[]
-    selectedId: string | null;
-    onSelect : (id: string) => void
-    loading?: boolean
-}
 
-export default function ConversationList({
-    conversations,
-    selectedId,
-    onSelect,
-    loading = false
-}: ConversationListProps) {
+export default function ConversationList() {
 
-    const [isMounted, setIsMounted] = useState(false)
-
-    useEffect(() => {
-        setIsMounted(true)
-    }, [])
+    const conversations = useChatStore(state => state.conversations)
+    const selectedId = useChatStore(state => state.activeConversationId)
+    const loading = useChatStore(state => state.isLoadingConversations)
+    const isMounted = useMounted();
 
     const getConversationName = (conv: ConversationDetailResponse) => {
         if (conv.name) return conv.name;
@@ -41,14 +30,12 @@ export default function ConversationList({
     };
 
     const formatTime = (timeString: string) => {
-        if (!isMounted) return '';
+        if (!isMounted) return '...';
         return formatDistanceToNow(new Date(timeString), {
           addSuffix: false,
           locale: vi,
         }).replace('khoảng ', '');
     };
-
-
 
     if (loading) {
         return (
@@ -59,127 +46,150 @@ export default function ConversationList({
     }
 
     return (
-        <List sx={{ p: 0 }}>
-      {conversations.map((conv) => (
-        <ListItemButton
-          key={conv.id}
-          selected={selectedId === conv.id}
-          onClick={() => onSelect(conv.id)}
-          sx={{
-            px: 2,
-            py: 1.5,
-            borderRadius: 1,
-            mx: 1,
-            mb: 0.5,
-            '&.Mui-selected': {
-              backgroundColor: '#404249',
-              '&:hover': {
-                backgroundColor: '#404249',
+      <List sx={{ p: 0 }}>
+        {conversations.map((conv) => (
+          <ListItemButton
+            key={conv.id}
+            selected={selectedId === conv.id}
+            onClick={() =>
+              useChatStore.getState().setActiveConversation(conv.id)
+            }
+            sx={{
+              px: 2,
+              py: 1.5,
+              borderRadius: 1,
+              mx: 1,
+              mb: 0.5,
+              "&.Mui-selected": {
+                backgroundColor: "#404249",
+                "&:hover": {
+                  backgroundColor: "#404249",
+                },
               },
-            },
-            '&:hover': {
-              backgroundColor: '#35373c',
-            },
-          }}
-        >
-          <ListItemAvatar sx={{ minWidth: 48 }}>
-            <Avatar
-              src={conv.conversationAvatar || undefined}
-              sx={{
-                bgcolor: '#5865f2',
-                width: 40,
-                height: 40,
-                fontSize: '1rem',
-              }}
-            >
-              {getConversationName(conv)[0]?.toUpperCase()}
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText
-            sx={{ my: 0 }}
-            slotProps={{
-              primary : {
-                component: 'div'
+              "&:hover": {
+                backgroundColor: "#35373c",
               },
-              secondary: {
-                component: 'div'
-              }
             }}
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography
-                  component="span"
+          >
+            <ListItemAvatar sx={{ minWidth: 48 }}>
+              <Avatar
+                src={conv.conversationAvatar || undefined}
+                sx={{
+                  bgcolor: "#5865f2",
+                  width: 40,
+                  height: 40,
+                  fontSize: "1rem",
+                }}
+              >
+                {getConversationName(conv)[0]?.toUpperCase()}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              sx={{ my: 0 }}
+              slotProps={{
+                primary: {
+                  component: "div",
+                },
+                secondary: {
+                  component: "div",
+                },
+              }}
+              primary={
+                <Box
                   sx={{
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                    lineHeight: 1.2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 0.5,
                   }}
                 >
-                  {getConversationName(conv)}
-                </Typography>
-                {conv.lastMessageTime && (
                   <Typography
                     component="span"
                     sx={{
-                      color: '#72767d',
-                      fontSize: '0.75rem',
-                      fontWeight: 400,
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      flex: 1,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {getConversationName(conv)}
+                  </Typography>
+                  {conv.lastMessageTime && (
+                    <Typography
+                      component="span"
+                      sx={{
+                        color: "#72767d",
+                        fontSize: "0.75rem",
+                        fontWeight: 400,
+                        ml: 1,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {formatTime(conv.lastMessageTime)}
+                    </Typography>
+                  )}
+                </Box>
+              }
+              secondary={
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: "#b9bbbe",
+                      fontSize: "0.875rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      flex: 1,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {conv.lastMessageContent || "Chưa có tin nhắn"}
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
                       ml: 1,
                       flexShrink: 0,
                     }}
                   >
-                    {formatTime(conv.lastMessageTime)}
-                  </Typography>
-                )}
-              </Box>
-            }
-            secondary={
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography
-                  component="span"
-                  sx={{
-                    color: '#b9bbbe',
-                    fontSize: '0.875rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {conv.lastMessageContent || 'Chưa có tin nhắn'}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1, flexShrink: 0 }}>
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: conv.isOnline ? '#23a55a' : '#80848e',
-                    }}
-                  />
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: conv.isOnline ? '#23a55a' : '#80848e',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {conv.isOnline ? 'Online' : 'Offline'}
-                  </Typography>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        backgroundColor: conv.isOnline ? "#23a55a" : "#80848e",
+                      }}
+                    />
+                    <Typography
+                      component="span"
+                      sx={{
+                        color: conv.isOnline ? "#23a55a" : "#80848e",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {conv.isOnline ? "Online" : "Offline"}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            }
-          />
-        </ListItemButton>
-      ))}
-    </List>
-    )
+              }
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    );
 }

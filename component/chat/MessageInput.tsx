@@ -2,22 +2,16 @@
 import {Box, IconButton, TextField} from '@mui/material'
 import {Send, AddCircleOutline} from '@mui/icons-material'
 import { useState } from 'react'
+import { useChatStore } from '@/store/useChatStore';
 
-interface MessageInputProps {
-    onSend: (content: string) => void
-    disabled?: boolean
-}
-
-export default function MessageInput({
-    onSend,
-    disabled = false
-} : MessageInputProps) {
-
+export default function MessageInput() {
     const [message, setMessage] = useState('');
+    const isSendingMessage = useChatStore(state => state.isSendingMessage);
+    const disabled = isSendingMessage;
 
     const handleSend = () => {
         if(message.trim() && !disabled) {
-            onSend(message.trim());
+            useChatStore.getState().sendMessage(message)
             setMessage('');
         }
     }

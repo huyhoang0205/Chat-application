@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AuthProvider from '@/component/auth/AuthProvider'
-import {AppRouterCacheProvider}  from '@mui/material-nextjs/v16-appRouter'
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,15 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="vi"
-    >
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col`}>
-      <AppRouterCacheProvider options={{enableCssLayer: true, key: 'css'}}>
-        <AuthProvider>        
-            {children}
-        </AuthProvider>
-      </AppRouterCacheProvider>
+    <html lang="vi">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col`}
+      >
+        <AppRouterCacheProvider options={{ enableCssLayer: true, key: "css" }}>
+          {children}
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

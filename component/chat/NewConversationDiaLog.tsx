@@ -18,18 +18,17 @@ import { ConversationType, UserDetailResponse } from '@/type';
 import { useDebounce } from '@/hook/useDebounce';
 import { userService } from '@/service/user.service';
 import { conversationService } from '@/service/conversation.service';
+import { useChatStore } from '@/store/useChatStore';
 
 interface NewConversationDialogProps {
     open: boolean;
     onClose: () => void;
-    onConversationCreated: (conversationId: string) => void
 }
 
 
 export default function NewConversationDialog({
     open,
     onClose,
-    onConversationCreated
 } : NewConversationDialogProps) {
     
     const [keyword, setKeyword] = useState('')
@@ -67,7 +66,8 @@ export default function NewConversationDialog({
                 participantIds: [user.userId],
                 conversationType: ConversationType.PRIVATE
             })
-            onConversationCreated(response.data.id)
+            useChatStore.getState().addConversations(response.data);
+            useChatStore.getState().setActiveConversation(response.data.id);
             handleClose();
         } catch (error) {
             console.error('Failed to create conversation:::', error)

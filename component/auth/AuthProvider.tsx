@@ -1,59 +1,74 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserStore } from '@/store/useUserStore';
 import { authService } from '@/service/auth.service';
 import {Box, keyframes} from '@mui/material'
-import { useAuthStore } from '@/store/useAuthStore';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export default function AuthProvider({ children }: AuthProviderProps) {
-  // const [isInitialized, setIsInitialized] = useState(false);
-  const {isInitialized, setIsInitialized } = useAuthStore();
-  const { setUser, clearUser } = useUserStore();
+const PUBLIC_ROUTES = ["/login", "/register"];
 
+export default function AuthProvider({ children }: AuthProviderProps) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const { user } = useUserStore();
+
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-
     const initAuth = async () => {
-      
-      // Chỉ chạy trên client
-      if (typeof window === 'undefined') return;
-      
-      const token = localStorage.getItem('accessToken');
-      if(!token) {
+      const token = localStorage.getItem("accessToken");
+      const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+        pathname.startsWith(route),
+      );
+
+      // 1. TRƯỜNG HỢP: Đã có token nhưng lại mò vào trang Public (/login, /register...)
+      // -> Tự động đá về trang Dashboard (hoặc trang chủ)
+      if (token && isPublicRoute) {
+        router.push("/");
+        return;
+      }
+
+      // 2. TRƯỜNG HỢP: Không có token và đang ở trang Public
+      // -> Cho qua luôn, không cần gọi API check user
+      if (!token && isPublicRoute) {
         setIsInitialized(true);
         return;
       }
-      if (token) {
-        try {
-          const response = await authService.myInfo();
-  
-          if (response.data) {
-            setUser(response.data); 
-          }
-        } catch (error) {
-          console.error('Failed to fetch user info:', error);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          clearUser();
-        }finally {
+
+      // 3. TRƯỜNG HỢP: Không có token mà lại vào trang bảo mật
+      // -> Xóa state user và đá về trang login
+      if (!token && !isPublicRoute) {
+        useUserStore.getState().clearUser();
+        router.push("/login");
+        return;
+      }
+
+      // 4. TRƯỜNG HỢP: Có token và đang ở trang bảo mật
+      // -> Tiến hành gọi API lấy thông tin user
+      try {
+        const response = await authService.myInfo();
+        if (response?.data) {
+          useUserStore.getState().setUser(response.data);
           setIsInitialized(true);
+        } else {
+          throw new Error("Invalid user data");
         }
+      } catch (error) {
+        console.error("Token không hợp lệ hoặc hết hạn:", error);
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        useUserStore.getState().clearUser();
+        router.push("/login");
       }
     };
-
     initAuth();
+  }, [pathname, user, router]);
 
-  }, [setUser, clearUser]);
-
-  // Trên server, luôn render children để tránh hydration mismatch
-  if (typeof window === 'undefined') {
-    return <>{children}</>;
-  }
 
   // Trên client, chờ initialization
   if (!isInitialized) {

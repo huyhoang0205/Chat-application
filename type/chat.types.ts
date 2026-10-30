@@ -48,12 +48,6 @@ export interface ChatMessageResponse {
   createdAt: string;
 }
 
-export interface StatusResponse {
-  userId : string
-  isOnline: boolean
-  lastOnlineAt: string
-}
-
 export interface CreateConversationRequest {
   name?: string;
   conversationAvatar?: string;
@@ -74,3 +68,8 @@ export interface MessageMediaRequest {
   mediaType: string;
 }
 
+export interface PresenceEvent {
+  userId: string;
+  isOnline: boolean;
+  lastOnlineAt: string | null;
+}
