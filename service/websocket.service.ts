@@ -7,22 +7,22 @@ class WebSocketService {
 
   connect(token: string, onConnected?: () => void) {
     this.client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080/ws",
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
       debug: (str) => {
-        console.log('[STOMP]', str);
+        console.log("[STOMP]", str);
       },
       onConnect: () => {
-        console.log('[WebSocket] Connected successfully');
+        console.log("[WebSocket] Connected successfully");
         onConnected?.();
       },
       onStompError: (error) => {
-        console.error('[WebSocket] STOMP error:', error);
+        console.error("[WebSocket] STOMP error:", error);
       },
       onWebSocketError: (error) => {
-        console.error('[WebSocket] Connection error:', error);
+        console.error("[WebSocket] Connection error:", error);
       },
     });
 
