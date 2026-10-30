@@ -1,6 +1,4 @@
-target/
 .git
 .gitignore
-.mvn/wrapper/maven-wrapper.properties
 *.iml
 .idea/
