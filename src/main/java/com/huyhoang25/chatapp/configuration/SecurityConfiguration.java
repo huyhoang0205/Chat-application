@@ -38,7 +38,8 @@ public class SecurityConfiguration {
             "/api/v1/auth/**",
             "/api/v1/users",
             "/ws/**", // Allow WebSocket endpoint
-    };
+            "/actuator/health",
+            };
 
     private final CustomDetailUserService detailUserService;
     private final CustomJwtDecoder jwtDecoder;

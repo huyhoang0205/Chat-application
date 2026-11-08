@@ -33,3 +33,13 @@ logging:
                 socket: INFO
 app:
     frontend_origin: ${FRONTEND_ORIGIN}
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - health
+  endpoint:
+    health:
+      show-details: never
+
